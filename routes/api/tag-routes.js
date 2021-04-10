@@ -6,7 +6,7 @@ const { Tag, Product, ProductTag } = require('../../models');
 router.get('/', (req, res) => {
   // find all tags
   // be sure to include its associated Product data
-  Tag.findAll({include: [{ model:  Product }]}).then((tagData) => {
+  Tag.findAll({ include: [{ model: Product }] }).then((tagData) => {
     res.json(tagData);
   })
 });
@@ -14,18 +14,46 @@ router.get('/', (req, res) => {
 router.get('/:id', (req, res) => {
   // find a single tag by its `id`
   // be sure to include its associated Product data
+  Tag.findByPk(req.params.id,{include: [{ model:  Product }]}).then((tagData) => {
+    res.json(tagData);
+  })
 });
 
 router.post('/', (req, res) => {
   // create a new tag
+  Tag.create(req.body)
+    .then((newTag) => {
+      res.json(newTag);
+    })
+    .catch((err) => {
+      res.json(err);
+    });
 });
 
 router.put('/:id', (req, res) => {
   // update a tag's name by its `id` value
+  const tag = getId(req.params.id)
+
+  if (!tag) return res.status(404).json({})
+
+  tag.id = req.body.id;
+  res.json(tag);
 });
 
 router.delete('/:id', (req, res) => {
   // delete on tag by its `id` value
+  try {
+    const tagData = Tag.destroy({
+      where: { id: req.params.id }
+    });
+    if (!tagData) {
+      res.status(404).json({ message: 'No tag with this id!' });
+      return;
+    }
+    res.status(200).json(tagData);
+  } catch (err) {
+    res.status(500).json(err);
+  }
 });
 
 module.exports = router;
